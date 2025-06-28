@@ -1,0 +1,6 @@
+{
+  "name": "mvchb-auth",
+  "dependencies": {
+    "@supabase/supabase-js": "^2.42.2"
+  }
+}
