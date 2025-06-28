@@ -1,37 +1,152 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8" />
-  <title>Connexion</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Modifier mot de passe salarié</title>
+<style>
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: #f0f2f5;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+  }
+  #change-password-box {
+    background: white;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+    width: 320px;
+  }
+  h1 {
+    margin-bottom: 20px;
+    font-weight: 600;
+    font-size: 1.5rem;
+    color: #333;
+    text-align: center;
+  }
+  label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 600;
+    color: #555;
+  }
+  input[type="text"],
+  input[type="password"] {
+    width: 100%;
+    padding: 8px 12px;
+    margin-bottom: 18px;
+    border-radius: 5px;
+    border: 1.8px solid #ccc;
+    font-size: 1rem;
+    transition: border-color 0.2s ease-in-out;
+  }
+  input[type="text"]:focus,
+  input[type="password"]:focus {
+    border-color: #3b82f6;
+    outline: none;
+  }
+  button {
+    width: 100%;
+    padding: 12px;
+    background-color: #3b82f6;
+    border: none;
+    color: white;
+    font-weight: 700;
+    font-size: 1rem;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.2s ease-in-out;
+  }
+  button:hover {
+    background-color: #2563eb;
+  }
+  #message {
+    margin-top: 12px;
+    min-height: 20px;
+    font-weight: 600;
+    text-align: center;
+  }
+  #message.error {
+    color: #dc2626;
+  }
+  #message.success {
+    color: #16a34a;
+  }
+</style>
 </head>
 <body>
-  <h2>Connexion salariés</h2>
-  <form id="login-form">
-    <input type="password" id="password" placeholder="Mot de passe" required />
-    <button type="submit">Connexion</button>
-  </form>
-  <div id="error" style="color:red;"></div>
+  <div id="change-password-box">
+    <h1>Modifier votre mot de passe</h1>
+    <form id="password-form" autocomplete="off">
+      <label for="username">Identifiant</label>
+      <input type="text" id="username" name="username" required autocomplete="username" />
+
+      <label for="oldPassword">Ancien mot de passe</label>
+      <input type="password" id="oldPassword" name="oldPassword" required autocomplete="current-password" />
+
+      <label for="newPassword">Nouveau mot de passe</label>
+      <input type="password" id="newPassword" name="newPassword" required autocomplete="new-password" />
+
+      <label for="confirmPassword">Confirmer nouveau mot de passe</label>
+      <input type="password" id="confirmPassword" name="confirmPassword" required autocomplete="new-password" />
+
+      <button type="submit">Valider</button>
+      <div id="message"></div>
+    </form>
+  </div>
 
   <script>
-    document.getElementById('login-form').addEventListener('submit', async (e) => {
+    const form = document.getElementById('password-form');
+    const message = document.getElementById('message');
+
+    form.addEventListener('submit', async (e) => {
       e.preventDefault();
-      const password = document.getElementById('password').value;
+      message.textContent = '';
+      message.className = '';
 
-      const res = await fetch('/.netlify/functions/login', {
-        method: 'POST',
-        body: JSON.stringify({ password }),
-      });
+      const username = form.username.value.trim();
+      const oldPassword = form.oldPassword.value;
+      const newPassword = form.newPassword.value;
+      const confirmPassword = form.confirmPassword.value;
 
-      const result = await res.json();
-      if (res.ok) {
-        sessionStorage.setItem('currentPassword', password); // pour modif
-        window.location.href = result.url;
-      } else {
-        document.getElementById('error').textContent = result.error;
+      if(newPassword !== confirmPassword){
+        message.textContent = "Le nouveau mot de passe et sa confirmation ne correspondent pas.";
+        message.className = "error";
+        return;
+      }
+
+      if(newPassword.length < 6){
+        message.textContent = "Le nouveau mot de passe doit contenir au moins 6 caractères.";
+        message.className = "error";
+        return;
+      }
+
+      // Appel API pour changer le mot de passe (exemple, à adapter)
+      try {
+        const res = await fetch('/.netlify/functions/changePassword', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({ username, oldPassword, newPassword })
+        });
+        const data = await res.json();
+
+        if(res.ok){
+          message.textContent = "Mot de passe modifié avec succès !";
+          message.className = "success";
+          form.reset();
+        } else {
+          message.textContent = data.error || "Erreur lors de la modification.";
+          message.className = "error";
+        }
+      } catch(err){
+        message.textContent = "Erreur réseau, veuillez réessayer.";
+        message.className = "error";
       }
     });
   </script>
-
-  <a href="change-password.html">Changer le mot de passe</a>
 </body>
 </html>
