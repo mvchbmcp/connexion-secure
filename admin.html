@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <title>Admin – Modifier mot de passe</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f4f4;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 50px;
+    }
+    .box {
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      max-width: 400px;
+      width: 100%;
+    }
+    input, button {
+      width: 100%;
+      margin-bottom: 10px;
+      padding: 10px;
+    }
+    #adminForm {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="box">
+    <h2>Accès administrateur</h2>
+    <input type="password" id="adminKey" placeholder="Mot de passe admin">
+    <button onclick="checkAdmin()">Valider</button>
+
+    <div id="adminForm">
+      <h3>Changer mot de passe utilisateur</h3>
+      <input type="text" id="email" placeholder="Email de l'utilisateur fictif" />
+      <input type="text" id="newPassword" placeholder="Nouveau mot de passe" />
+      <button onclick="changePassword()">Changer le mot de passe</button>
+      <p id="message"></p>
+    </div>
+  </div>
+
+  <script>
+    const ADMIN_PASSWORD = "mvchbadmin"; // à changer si tu veux
+
+    function checkAdmin() {
+      const input = document.getElementById('adminKey').value;
+      if (input === ADMIN_PASSWORD) {
+        document.getElementById('adminForm').style.display = 'block';
+      } else {
+        alert("Mot de passe incorrect");
+      }
+    }
+
+    async function changePassword() {
+      const email = document.getElementById('email').value.trim();
+      const newPassword = document.getElementById('newPassword').value.trim();
+
+      const res = await fetch('/.netlify/functions/resetPassword', {
+        method: 'POST',
+        body: JSON.stringify({ email, newPassword })
+      });
+
+      const data = await res.json();
+      document.getElementById('message').innerText = data.message || data.error;
+    }
+  </script>
+</body>
+</html>
