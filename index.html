@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <title>Connexion RH</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      background: #f0f0f5;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+    }
+    .box {
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px #ccc;
+      width: 320px;
+    }
+    label, input {
+      display: block;
+      width: 100%;
+      margin-bottom: 15px;
+    }
+    input[type="submit"] {
+      background: #007bff;
+      color: white;
+      border: none;
+      padding: 10px;
+      cursor: pointer;
+    }
+    input[type="submit"]:hover {
+      background: #0056b3;
+    }
+    .link {
+      text-align: center;
+      margin-top: 10px;
+    }
+    .link a {
+      font-size: 14px;
+      color: #007bff;
+      text-decoration: none;
+    }
+    #error-msg {
+      color: red;
+      text-align: center;
+      height: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="box">
+    <form id="login-form">
+      <label>Email (ou prénom) :</label>
+      <input type="text" id="email" required />
+      <label>Mot de passe :</label>
+      <input type="password" id="password" required />
+      <input type="submit" value="Connexion" />
+      <div id="error-msg"></div>
+    </form>
+    <div class="link">
+      <a href="change-password.html">Modifier mon mot de passe</a>
+    </div>
+  </div>
+
+  <script>
+    const form = document.getElementById("login-form");
+    const errorMsg = document.getElementById("error-msg");
+
+    const redirections = {
+      "charles@rh.mvchb.local": "https://sites.google.com/view/espace-rh-mvchb/votre-solde-de-cong%C3%A9s-pay%C3%A9s/charles",
+      "karine@rh.mvchb.local": "https://sites.google.com/view/espace-rh-mvchb/votre-solde-de-cong%C3%A9s-pay%C3%A9s/karine",
+      "corentin@rh.mvchb.local": "https://sites.google.com/view/espace-rh-mvchb/votre-solde-de-cong%C3%A9s-pay%C3%A9s/corentin",
+      "sofiane@rh.mvchb.local": "https://sites.google.com/view/espace-rh-mvchb/votre-solde-de-cong%C3%A9s-pay%C3%A9s/sofiane",
+      "natalia@rh.mvchb.local": "https://sites.google.com/view/espace-rh-mvchb/votre-solde-de-cong%C3%A9s-pay%C3%A9s/natalia"
+    };
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      errorMsg.textContent = "";
+      const email = document.getElementById("email").value.trim().toLowerCase();
+      const password = document.getElementById("password").value;
+
+      const res = await fetch("/.netlify/functions/login", {
+        method: "POST",
+        body: JSON.stringify({ email, password }),
+        headers: { "Content-Type": "application/json" }
+      });
+
+      const result = await res.json();
+
+      if (result.success) {
+        if (redirections[email]) {
+          window.location.href = redirections[email];
+        } else {
+          errorMsg.textContent = "Redirection non définie.";
+        }
+      } else {
+        errorMsg.textContent = "Identifiants incorrects.";
+      }
+    });
+  </script>
+</body>
+</html>
