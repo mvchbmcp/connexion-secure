@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <title>Connexion salariés</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f4f4;
+      display: flex;
+      height: 100vh;
+      justify-content: center;
+      align-items: center;
+      margin: 0;
+    }
+    #login-box {
+      background: white;
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      width: 320px;
+    }
+    label {
+      font-weight: bold;
+      display: block;
+      margin-bottom: 8px;
+    }
+    input[type="password"] {
+      width: 100%;
+      padding: 8px;
+      margin-bottom: 15px;
+      box-sizing: border-box;
+      font-size: 16px;
+    }
+    input[type="submit"], button {
+      width: 100%;
+      padding: 10px;
+      background-color: #4285F4;
+      border: none;
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
+      border-radius: 4px;
+      margin-bottom: 10px;
+    }
+    input[type="submit"]:hover, button:hover {
+      background-color: #3367d6;
+    }
+    #error-msg {
+      color: red;
+      min-height: 18px;
+      margin-bottom: 10px;
+    }
+    #success-msg {
+      color: green;
+      min-height: 18px;
+      margin-bottom: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div id="login-box">
+    <form id="login-form">
+      <label for="password">Mot de passe :</label>
+      <input type="password" id="password" name="password" required autofocus />
+      <input type="submit" value="Se connecter" />
+      <div id="error-msg"></div>
+    </form>
+
+    <button id="show-change-password">Modifier mon mot de passe</button>
+
+    <form id="change-password-form" style="display:none;">
+      <label for="old-password">Ancien mot de passe :</label>
+      <input type="password" id="old-password" name="old-password" required />
+      
+      <label for="new-password">Nouveau mot de passe :</label>
+      <input type="password" id="new-password" name="new-password" required />
+      
+      <input type="submit" value="Changer le mot de passe" />
+      <div id="error-msg-change"></div>
+      <div id="success-msg-change"></div>
+    </form>
+  </div>
+
+  <script>
+    const loginForm = document.getElementById('login-form');
+    const errorMsg = document.getElementById('error-msg');
+
+    const changePasswordForm = document.getElementById('change-password-form');
+    const errorMsgChange = document.getElementById('error-msg-change');
+    const successMsgChange = document.getElementById('success-msg-change');
+
+    const btnShowChange = document.getElementById('show-change-password');
+
+    btnShowChange.addEventListener('click', () => {
+      changePasswordForm.style.display = changePasswordForm.style.display === 'none' ? 'block' : 'none';
+      errorMsg.textContent = '';
+      errorMsgChange.textContent = '';
+      successMsgChange.textContent = '';
+    });
+
+    loginForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      errorMsg.textContent = '';
+
+      const password = loginForm.password.value.trim();
+
+      if (!password) {
+        errorMsg.textContent = 'Veuillez entrer un mot de passe';
+        return;
+      }
+
+      try {
+        const response = await fetch('/.netlify/functions/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ oldPassword: password })  // juste oldPassword pour login
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          window.location.href = data.redirectUrl;
+        } else {
+          errorMsg.textContent = data.message || 'Mot de passe incorrect';
+        }
+      } catch (err) {
+        errorMsg.textContent = 'Erreur de connexion';
+      }
+    });
+
+    changePasswordForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      errorMsgChange.textContent = '';
+      successMsgChange.textContent = '';
+
+      const oldPassword = changePasswordForm['old-password'].value.trim();
+      const newPassword = changePasswordForm['new-password'].value.trim();
+
+      if (!oldPassword || !newPassword) {
+        errorMsgChange.textContent = 'Veuillez remplir tous les champs';
+        return;
+      }
+
+      if (oldPassword === newPassword) {
+        errorMsgChange.textContent = 'Le nouveau mot de passe doit être différent de l\'ancien';
+        return;
+      }
+
+      try {
+        const response = await fetch('/.netlify/functions/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ oldPassword, newPassword })  // envoie aussi newPassword
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          successMsgChange.textContent = data.message || 'Mot de passe changé';
+          changePasswordForm.reset();
+        } else {
+          errorMsgChange.textContent = data.message || 'Erreur changement mot de passe';
+        }
+      } catch (err) {
+        errorMsgChange.textContent = 'Erreur réseau';
+      }
+    });
+  </script>
+</body>
+</html>
